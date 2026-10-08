@@ -1,0 +1,6 @@
+# Normalise line endings in the repo.
+* text=auto
+
+# Shell scripts MUST keep LF endings or bash on WSL will fail with
+# "\r: command not found". This overrides Windows autocrlf.
+*.sh text eol=lf

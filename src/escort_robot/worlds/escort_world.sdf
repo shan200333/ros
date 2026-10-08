@@ -1,0 +1,285 @@
+<?xml version="1.0" ?>
+<sdf version="1.8">
+
+  <world name="escort_world">
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <plugin
+      filename="gz-sim-physics-system"
+      name="gz::sim::systems::Physics">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-user-commands-system"
+      name="gz::sim::systems::UserCommands">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-scene-broadcaster-system"
+      name="gz::sim::systems::SceneBroadcaster">
+    </plugin>
+
+    <plugin
+      filename="gz-sim-sensors-system"
+      name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+
+
+    <!-- GROUND -->
+    <model name="ground">
+      <static>true</static>
+      <link name="ground_link">
+        <collision name="collision">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>30 30</size>
+            </plane>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>30 30</size>
+            </plane>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+
+    <!-- ROBOT -->
+    <model
+      name="escort_robot"
+      canonical_link="base_link">
+
+      <pose>0 0 0.20 0 0 0</pose>
+
+      <!-- BASE -->
+      <link name="base_link">
+        <inertial>
+          <mass>8.0</mass>
+          <inertia>
+            <ixx>0.12</ixx>
+            <iyy>0.12</iyy>
+            <izz>0.20</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.7 0.5 0.3</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.7 0.5 0.3</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+
+      <!-- LEFT WHEEL -->
+      <link name="left_wheel">
+        <pose>0 0.32 -0.05 1.5708 0 0</pose>
+        <inertial>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>0.005</ixx>
+            <iyy>0.005</iyy>
+            <izz>0.005</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.12</radius>
+              <length>0.08</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.12</radius>
+              <length>0.08</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+
+      <!-- RIGHT WHEEL -->
+      <link name="right_wheel">
+        <pose>0 -0.32 -0.05 1.5708 0 0</pose>
+        <inertial>
+          <mass>1.0</mass>
+          <inertia>
+            <ixx>0.005</ixx>
+            <iyy>0.005</iyy>
+            <izz>0.005</izz>
+          </inertia>
+        </inertial>
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.12</radius>
+              <length>0.08</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.12</radius>
+              <length>0.08</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+
+      <!-- WHEEL JOINTS -->
+      <joint
+        name="left_wheel_joint"
+        type="revolute">
+        <parent>base_link</parent>
+        <child>left_wheel</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+        </axis>
+      </joint>
+
+      <joint
+        name="right_wheel_joint"
+        type="revolute">
+        <parent>base_link</parent>
+        <child>right_wheel</child>
+        <axis>
+          <xyz>0 1 0</xyz>
+        </axis>
+      </joint>
+
+      <!-- LIDAR -->
+      <link name="lidar_link">
+        <pose>0.25 0 0.18 0 0 0</pose>
+        <sensor
+          name="lidar"
+          type="gpu_lidar">
+          <topic>/scan</topic>
+          <update_rate>10</update_rate>
+          <ray>
+            <scan>
+              <horizontal>
+                <samples>360</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.14159</min_angle>
+                <max_angle>3.14159</max_angle>
+              </horizontal>
+            </scan>
+            <range>
+              <min>0.10</min>
+              <max>8.0</max>
+              <resolution>0.01</resolution>
+            </range>
+          </ray>
+          <always_on>true</always_on>
+          <visualize>true</visualize>
+        </sensor>
+      </link>
+
+      <joint
+        name="lidar_joint"
+        type="fixed">
+        <parent>base_link</parent>
+        <child>lidar_link</child>
+      </joint>
+
+      <!-- DIFFERENTIAL DRIVE -->
+      <plugin
+        filename="gz-sim-diff-drive-system"
+        name="gz::sim::systems::DiffDrive">
+        <left_joint>left_wheel_joint</left_joint>
+        <right_joint>right_wheel_joint</right_joint>
+        <wheel_separation>0.64</wheel_separation>
+        <wheel_radius>0.12</wheel_radius>
+        <topic>/model/escort_robot/cmd_vel</topic>
+        <odom_topic>/model/escort_robot/odometry</odom_topic>
+        <frame_id>odom</frame_id>
+        <child_frame_id>base_link</child_frame_id>
+        <odom_publish_frequency>20</odom_publish_frequency>
+        <max_linear_velocity>0.5</max_linear_velocity>
+        <min_linear_velocity>-0.5</min_linear_velocity>
+        <max_angular_velocity>1.0</max_angular_velocity>
+        <min_angular_velocity>-1.0</min_angular_velocity>
+      </plugin>
+
+    </model>
+
+
+    <!-- TARGET -->
+    <model name="target_person">
+      <static>true</static>
+      <pose>5 0 0.75 0 0 0</pose>
+      <link name="target_link">
+        <collision name="collision">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <cylinder>
+              <radius>0.25</radius>
+              <length>1.5</length>
+            </cylinder>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+
+    <!-- OBSTACLE -->
+    <model name="obstacle_1">
+      <static>true</static>
+      <pose>2.5 0 0.6 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry>
+            <box>
+              <size>0.8 1.2 1.2</size>
+            </box>
+          </geometry>
+        </collision>
+        <visual name="visual">
+          <geometry>
+            <box>
+              <size>0.8 1.2 1.2</size>
+            </box>
+          </geometry>
+        </visual>
+      </link>
+    </model>
+
+
+    <light
+      type="directional"
+      name="sun">
+      <pose>0 0 10 0 0 0</pose>
+      <direction>-0.5 0.2 -1</direction>
+      <diffuse>1 1 1 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+    </light>
+
+  </world>
+
+</sdf>
