@@ -29,6 +29,11 @@
       <render_engine>ogre2</render_engine>
     </plugin>
 
+    <plugin
+      filename="gz-sim-imu-system"
+      name="gz::sim::systems::Imu">
+    </plugin>
+
 
     <!-- GROUND -->
     <model name="ground">
@@ -85,6 +90,25 @@
             </box>
           </geometry>
         </visual>
+
+        <!-- IMU (raw accel + gyro + orientation), mounted on the base -->
+        <sensor name="imu" type="imu">
+          <topic>/imu</topic>
+          <update_rate>50</update_rate>
+          <always_on>true</always_on>
+          <imu>
+            <angular_velocity>
+              <x><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></x>
+              <y><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></y>
+              <z><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></z>
+            </angular_velocity>
+            <linear_acceleration>
+              <x><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></x>
+              <y><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></y>
+              <z><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></z>
+            </linear_acceleration>
+          </imu>
+        </sensor>
       </link>
 
       <!-- LEFT WHEEL -->
@@ -218,6 +242,15 @@
         <min_linear_velocity>-0.5</min_linear_velocity>
         <max_angular_velocity>1.0</max_angular_velocity>
         <min_angular_velocity>-1.0</min_angular_velocity>
+      </plugin>
+
+      <!-- WHEEL JOINT STATES (raw per-wheel angle + velocity, i.e. encoders) -->
+      <plugin
+        filename="gz-sim-joint-state-publisher-system"
+        name="gz::sim::systems::JointStatePublisher">
+        <topic>/joint_states</topic>
+        <joint_name>left_wheel_joint</joint_name>
+        <joint_name>right_wheel_joint</joint_name>
       </plugin>
 
     </model>

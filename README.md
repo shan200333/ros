@@ -70,7 +70,10 @@ source /opt/ros/jazzy/setup.bash
 source ~/escort_ws/install/setup.bash
 
 ros2 topic list
-# expect: /cmd_vel  /odom  /scan  /target_position  /clock
+# expect: /cmd_vel  /odom  /scan  /imu  /joint_states  /target_position  /clock
+
+ros2 topic echo /imu                 # raw IMU: angular velocity + linear accel
+ros2 topic echo /joint_states        # per-wheel angle + velocity (encoders)
 
 ros2 topic echo /target_position     # data: [5.0, 0.0]
 ros2 topic echo /cmd_vel             # linear/angular velocity commands
@@ -108,7 +111,7 @@ ros2 run escort_robot escort_controller
 |------|---------|
 | `src/escort_robot/escort_robot/target_simulator.py` | Publishes the target position on `/target_position`. |
 | `src/escort_robot/escort_robot/escort_controller.py` | Follows the target, avoids obstacles, publishes `/cmd_vel`. |
-| `src/escort_robot/worlds/escort_world.sdf` | Gazebo world: ground, robot (diff-drive + LiDAR), target, obstacle. |
+| `src/escort_robot/worlds/escort_world.sdf` | Gazebo world: ground, robot (diff-drive + LiDAR + IMU + wheel joint states), target, obstacle. |
 | `src/escort_robot/config/bridge.yaml` | ROS <-> Gazebo topic bridge. |
 | `src/escort_robot/launch/escort_sim.launch.py` | Launches Gazebo + bridge + both nodes together. |
 | `build.sh` / `run.sh` | Convenience scripts. |
